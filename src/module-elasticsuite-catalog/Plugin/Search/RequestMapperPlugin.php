@@ -187,12 +187,13 @@ class RequestMapperPlugin
         }
 
         if ($containerConfiguration->getName() == "quick_search_container" && empty($sortOrders)) {
-            $searchQuery = $this->searchContext->getCurrentSearchQuery();
-            if ($searchQuery->getId()) {
-                $sortOrders['search_query.position'] = [
-                    'direction'     => SortOrderInterface::SORT_ASC,
-                    'nestedFilter'  => ['search_query.query_id' => $searchQuery->getId()],
-                ];
+            if ($searchQuery = $this->searchContext->getCurrentSearchQuery()) {
+                if ($searchQuery->getId()) {
+                    $sortOrders['search_query.position'] = [
+                        'direction'     => SortOrderInterface::SORT_ASC,
+                        'nestedFilter'  => ['search_query.query_id' => $searchQuery->getId()],
+                    ];
+                }
             }
         }
 
@@ -234,6 +235,10 @@ class RequestMapperPlugin
      */
     private function getCurrentCategoryId(ContainerConfigurationInterface $containerConfiguration, SearchCriteriaInterface $searchCriteria)
     {
+        if ($this->searchContext->getCurrentCategory() && $this->searchContext->getCurrentCategory()->getId()) {
+            return $this->searchContext->getCurrentCategory()->getId();
+        }
+
         $store      = $this->storeManager->getStore($containerConfiguration->getStoreId());
         $categoryId = $this->storeManager->getGroup($store->getStoreGroupId())->getRootCategoryId();
 
